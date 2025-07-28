@@ -5,7 +5,7 @@ let testCache = null;
 async function loadTest() {
   if (testCache) return testCache;
   const res = await fetch('test.json');
-  testCache = await res.text();
+  testCache = await res.json();
   return testCache;
 }
 
