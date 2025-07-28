@@ -1,6 +1,7 @@
 let historyStack = [];
 let currentScreen = null;
 let testCache = null;
+let testStarted = false;
 
 async function loadTest() {
   if (testCache) return testCache;
@@ -21,6 +22,7 @@ function createButton(text, onClick, extraClass = '', id = '') {
 function showStartScreen(test, container, startTest) {
   currentScreen = { type: 'start' };
   historyStack = [];
+  testStarted = false;
   setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(true);
@@ -29,6 +31,7 @@ function showStartScreen(test, container, startTest) {
   btnsDiv.className = 'start-btns';
   Object.entries(test.custom_starts).forEach(([label, qid]) => {
     const btn = createButton(label, () => {
+      testStarted = true;
       historyStack.push(currentScreen);
       setBackBtnInactive(false);
       setResetBtnInactive(false);
@@ -38,6 +41,7 @@ function showStartScreen(test, container, startTest) {
     btnsDiv.appendChild(btn);
   });
   const defBtn = createButton('Провести диагностику современного состояния', () => {
+    testStarted = true;
     historyStack.push(currentScreen);
     setBackBtnInactive(false);
     setResetBtnInactive(false);
@@ -84,6 +88,7 @@ function showQuestion(qid, test, container, showResult) {
 
 function showResultScreen(resultId, test, container) {
   currentScreen = { type: 'result', resultId };
+  testStarted = false;
   setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(false);
@@ -96,7 +101,6 @@ function showResultScreen(resultId, test, container) {
     <p>${text}</p>
   `;
   container.appendChild(block);
-  // Кнопка "Пройти заново" как все остальные
   const btnsDiv = document.createElement('div');
   btnsDiv.className = 'answers-row flex-column';
   btnsDiv.appendChild(createButton('Пройти заново', () => {
@@ -197,7 +201,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   showStartScreen(test, container, start);
   applySavedTheme();
 
-  // Header buttons
   document.getElementById('about-btn').onclick = showAboutModal;
   document.getElementById('restart-btn').onclick = () => {
     if (currentScreen && (currentScreen.type === 'start' || currentScreen.type === 'result')) return;
@@ -222,4 +225,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('theme-toggle').onclick = () => {
     toggleTheme();
   };
-}); 
+
+  window.addEventListener('beforeunload', (e) => {
+    if (testStarted) {
+      e.preventDefault();
+      e.returnValue = 'Вы не закончили тест. Вы уверены, что хотите покинуть страницу?';
+      return 'Вы не закончили тест. Вы уверены, что хотите покинуть страницу?';
+    }
+  });
+
+  window.addEventListener('popstate', (e) => {
+    if (testStarted) {
+      return window.confirm('Вы не закончили тест. Вы уверены, что хотите покинуть страницу?');
+    }
+  });
+
+});
