@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Диагностика системы водоснабжения</title>
+  <meta name="description" content="Интерактивный тест для диагностики и устранения проблем системы водоснабжения. Быстрые решения и рекомендации.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header py-3 shadow-sm sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <button id="back-btn" class="btn btn-outline-secondary"><span class="bi bi-arrow-left"></span> Назад</button>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-outline-primary" id="about-btn">О тесте</button>
+        <button class="btn btn-outline-success" id="restart-btn">Сбросить</button>
+        <button id="theme-toggle" title="Переключить тему" aria-label="Переключить тему"><span id="theme-icon"></span></button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container py-4">
+      <div id="test-desc">Тест для диагностики и устранения проблем системы водоснабжения. Просто отвечайте на вопросы — и получите рекомендации!</div>
+      <div id="test-app"></div>
+    </div>
+  </main>
+  <script>
+    let historyStack = [], currentScreen = null, testCache = null; async function loadTest() {
+  if (testCache) return testCache; return testCache = JSON.parse(`
+  {
+  "start": "q1",
+  "custom_starts": {
+    "Вода природного качества не соответствует требованиями": "q2",
+    "Загрязнение водоисточника": "q4",
+    "Большой водозабор": "q6",
+    "Нехватка финансирования сферы водоснабжения": "q8",
+    "Инфраструктура требует ремонта и модернизации": "q10",
+    "Инфраструктура отсутствует": "q12"
+     },
+  "questions": {
+    "q1": {
+      "text": "Есть ли в населенном пункте водоснабжающая инфраструктура?",
+      "answers": {
+        "да": "q4",
+        "нет": "q2"
+      }
+    },
+    "q2": {
+      "text": "Проверен ли источник воды (скважина, водопровод)?",
+      "answers": {
+        "да": "q3",
+        "нет": "result1"
+      }
+    },
+    "q3": {
+      "text": "Есть ли засор на входе?",
+      "answers": {
+        "да": "result2",
+        "нет": "result3"
+      }
+    },
+    "q4": {
+      "text": "Достаточно ли давление воды?",
+      "answers": {
+        "да": "q6",
+        "нет": "q5"
+      }
+    },
+    "q5": {
+      "text": "Работает ли насосная станция?",
+      "answers": {
+        "да": "result4",
+        "нет": "result5"
+      }
+    },
+    "q6": {
+      "text": "Работает ли насосная станция корректно?",
+      "answers": {
+        "да": "q8",
+        "нет": "q7"
+      }
+    },
+    "q7": {
+      "text": "Есть ли ошибки на панели управления?",
+      "answers": {
+        "да": "result6",
+        "нет": "result7"
+      }
+    },
+    "q8": {
+      "text": "Фильтры чистые?",
+      "answers": {
+        "да": "q10",
+        "нет": "result8"
+      }
+    },
+    "q10": {
+      "text": "Есть ли утечки в системе?",
+      "answers": {
+        "да": "result9",
+        "нет": "q12"
+      }
+    },
+    "q12": {
+      "text": "Качество воды соответствует норме?",
+      "answers": {
+        "да": "q14",
+        "нет": "result10"
+      }
+    },
+    "q14": {
+      "text": "Работает ли автоматика (датчики, реле)?",
+      "answers": {
+        "да": "result11",
+        "нет": "result12"
+      }
+    }
+  },
+  "results": {
+    "result1": "Организация подвоза воды",
+    "result2": "Ликвидация и расселение населенного пункта",
+    "result3": "Строительство водоснабжающей инфраструктуры",
+    "result4": "Определение источника загрязнения",
+    "result5": "Ликвидация источника загрязнения",
+    "result6": "Проведение водоохранных мероприятий",
+    "result7": "Поиск и разведка месторождений подземных вод",
+    "result8": "Внедрение водосберегающих технологий, установка счетчиков",
+    "result9": "Поиск источников финансирования, работа с инвесторами",
+    "result10": "Ремонт и модернизация инфраструктуры",
+    "result11": "Система работает корректно",
+    "result12": "Строительство "
+  }
+}
+  `), 
+  testCache}
+function createButton(e, t, n = "", s = "") { const c = document.createElement("button"); return c.className = `btn btn-primary w-100 ${n}`.trim(), c.textContent = e, c.onclick = t, s && (c.id = s), c } function showStartScreen(e, t, n) { currentScreen = { type: "start" }, historyStack = [], setBackBtnInactive(!0), setResetBtnInactive(!0), showTestDesc(!0), t.innerHTML = '<h2 class="mb-4 text-center">Выберите начало теста</h2>'; const s = document.createElement("div"); s.className = "start-btns", Object.entries(e.custom_starts).forEach((([e, t]) => { const c = createButton(e, (() => { historyStack.push(currentScreen), setBackBtnInactive(!1), setResetBtnInactive(!1), showTestDesc(!1), n(t) })); s.appendChild(c) })); const c = createButton("Провести диагностику современного состояния", (() => { historyStack.push(currentScreen), setBackBtnInactive(!1), setResetBtnInactive(!1), showTestDesc(!1), n(e.start) })); s.appendChild(c), t.appendChild(s) } function showQuestion(e, t, n, s) { currentScreen = { type: "question", qid: e }, setBackBtnInactive(!1), setResetBtnInactive(!1), showTestDesc(!1); const c = t.questions[e]; if (!c) return void (n.innerHTML = '<div class="alert alert-danger">Вопрос не найден</div>'); n.innerHTML = ""; const o = document.createElement("div"); o.className = "question-text", o.textContent = c.text, n.appendChild(o); const a = document.createElement("div"); a.className = "answers-row flex-column", Object.entries(c.answers).forEach((([e, c]) => { const o = createButton(e, (() => { historyStack.push(currentScreen), setBackBtnInactive(!1), setResetBtnInactive(!1), showTestDesc(!1), c.startsWith("result") ? s(c) : showQuestion(c, t, n, s) })); a.appendChild(o) })), n.appendChild(a) } function showResultScreen(e, t, n) { currentScreen = { type: "result", resultId: e }, setBackBtnInactive(!0), setResetBtnInactive(!0), showTestDesc(!1); const s = t.results[e] || "Результат не найден"; n.innerHTML = ""; const c = document.createElement("div"); c.className = "result-block", c.innerHTML = `\n    <h4>Рекомендация</h4>\n    <p>${s}</p>\n  `, n.appendChild(c); const o = document.createElement("div"); o.className = "answers-row flex-column", o.appendChild(createButton("Пройти заново", (() => { showStartScreen(t, n, (e => { showQuestion(e, t, n, (e => showResultScreen(e, t, n))) })) }))), n.appendChild(o) } function setBackBtnInactive(e) { const t = document.getElementById("back-btn"); e ? t.classList.add("inactive") : t.classList.remove("inactive") } function setResetBtnInactive(e) { const t = document.getElementById("restart-btn"); e ? t.classList.add("inactive") : t.classList.remove("inactive") } function showTestDesc(e) { const t = document.getElementById("test-desc"); t && (e ? t.classList.remove("hidden") : t.classList.add("hidden")) } function showAboutModal() { let e = document.getElementById("about-modal"); if (e) e.focus(); else { e = document.createElement("div"), e.id = "about-modal", e.tabIndex = 0, e.style.position = "fixed", e.style.top = "0", e.style.left = "0", e.style.width = "100vw", e.style.height = "100vh", e.style.background = "rgba(0,0,0,0.25)", e.style.display = "flex", e.style.alignItems = "center", e.style.justifyContent = "center", e.style.zIndex = "9999", e.innerHTML = '\n      <div style="background:var(--container-bg,#fff); color:var(--text,#222); border-radius:16px; max-width:400px; padding:2rem 1.5rem; box-shadow:0 8px 32px 0 rgba(0,0,0,0.18); text-align:center; position:relative;">\n        <button style="position:absolute;top:10px;right:10px;" class="btn-close" id="close-about" aria-label="Закрыть"></button>\n        <h5>О тесте</h5>\n        <p>Этот тест — интерактивный инструмент для быстрой диагностики и устранения проблем системы водоснабжения. Просто отвечайте на вопросы, чтобы получить индивидуальные рекомендации.</p>\n      </div>\n    ', document.body.appendChild(e), document.getElementById("close-about").onclick = () => e.remove(), e.onclick = t => { t.target === e && e.remove() }, document.addEventListener("keydown", (function (t) { "Escape" === t.key && e.remove() }), { once: !0 }), setTimeout((() => e.focus()), 10) } } function setThemeIcon() { const e = document.getElementById("theme-icon"), t = document.body.classList.contains("dark"); e.innerHTML = t ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon" viewBox="0 0 16 16"><path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/></svg>' : '<svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="7" fill="#FFD600"/><g stroke="#FFD600" stroke-width="2"><line x1="13" y1="2" x2="13" y2="6"/><line x1="13" y1="20" x2="13" y2="24"/><line x1="2" y1="13" x2="6" y2="13"/><line x1="20" y1="13" x2="24" y2="13"/><line x1="5.22" y1="5.22" x2="8.05" y2="8.05"/><line x1="17.95" y1="17.95" x2="20.78" y2="20.78"/><line x1="5.22" y1="20.78" x2="8.05" y2="17.95"/><line x1="17.95" y1="8.05" x2="20.78" y2="5.22"/></g></svg>' } function toggleTheme() { const e = document.body.classList.toggle("dark"); localStorage.setItem("theme", e ? "dark" : "light"), setThemeIcon() } function applySavedTheme() { "dark" === localStorage.getItem("theme") ? document.body.classList.add("dark") : document.body.classList.remove("dark"), setThemeIcon() } window.addEventListener("DOMContentLoaded", (async () => { const e = document.getElementById("test-app"), t = await loadTest(); function n(n) { showQuestion(n, t, e, (n => showResultScreen(n, t, e))) } showStartScreen(t, e, n), applySavedTheme(), document.getElementById("about-btn").onclick = showAboutModal, document.getElementById("restart-btn").onclick = () => { (!currentScreen || "start" !== currentScreen.type && "result" !== currentScreen.type) && showStartScreen(t, e, n) }, document.getElementById("back-btn").onclick = () => { if (!currentScreen || "start" !== currentScreen.type && "result" !== currentScreen.type) if (historyStack.length > 0) { const s = historyStack.pop(); if (!s) return; "start" === s.type ? showStartScreen(t, e, n) : "question" === s.type ? showQuestion(s.qid, t, e, (n => showResultScreen(n, t, e))) : "result" === s.type && showResultScreen(s.resultId, t, e) } else showStartScreen(t, e, n) }, document.getElementById("theme-toggle").onclick = () => { toggleTheme() } }));
+  </script>
+</body>
+</html> 
