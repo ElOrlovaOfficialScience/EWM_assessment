@@ -24,7 +24,7 @@ function showStartScreen(test, container, startTest) {
   setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(true);
-  container.innerHTML = '<h2 class="mb-4 text-center">Выберите начало теста</h2>';
+  container.innerHTML = '<h2 class="mb-4 text-center">Выберите проблему</h2>';
   const btnsDiv = document.createElement('div');
   btnsDiv.className = 'start-btns';
   Object.entries(test.custom_starts).forEach(([label, qid]) => {
