@@ -37,7 +37,7 @@ function showStartScreen(test, container, startTest) {
     });
     btnsDiv.appendChild(btn);
   });
-  const defBtn = createButton('Старт с начала', () => {
+  const defBtn = createButton('Провести диагностику современного состояния', () => {
     historyStack.push(currentScreen);
     setBackBtnInactive(false);
     setResetBtnInactive(false);
@@ -144,7 +144,8 @@ function showAboutModal() {
       <div style="background:var(--container-bg,#fff); color:var(--text,#222); border-radius:16px; max-width:400px; padding:2rem 1.5rem; box-shadow:0 8px 32px 0 rgba(0,0,0,0.18); text-align:center; position:relative;">
         <button style="position:absolute;top:10px;right:10px;" class="btn-close" id="close-about" aria-label="Закрыть"></button>
         <h5>О тесте</h5>
-        <p>Этот тест — интерактивный инструмент для быстрой диагностики и устранения проблем системы водоснабжения. Просто отвечайте на вопросы, чтобы получить индивидуальные рекомендации.</p>
+        <p>Эколого-водохозяйственная оценка направлена на выявление проблем в сфере водоснабжения населенных пунктов. Она учитывает природные особенности территории и затрагивает социально-экономические аспекты развития районов и населенных пунктов, в том числе состояние водохозяйственной сферы.  
+Алгоритм эколого-водохозяйственной оценки является инструментом для систематического анализа и принятия решений в сфере водоснабжения, учитывая экологические, экономические и социальные аспекты. Она позволяет структурировать процессы и обеспечить комплексный подход к решению проблем водоснабжения, что особенно важно для долгосрочного планирования и устойчивого развития территорий.</p>
       </div>
     `;
     document.body.appendChild(modal);
