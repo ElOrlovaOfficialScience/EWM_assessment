@@ -40,7 +40,7 @@ function showStartScreen(test, container, startTest) {
     });
     btnsDiv.appendChild(btn);
   });
-  const defBtn = createButton('Провести диагностику современного состояния', () => {
+  const defBtn = createButton('Необходимо провести диагностику состояния сферы водоснабжения', () => {
     testStarted = true;
     historyStack.push(currentScreen);
     setBackBtnInactive(false);
