@@ -1,3 +1,4 @@
+// import {DATA} from './data.js';
 let historyStack = [];
 let currentScreen = null;
 let testCache = null;
@@ -6,71 +7,9 @@ let testStarted = false;
 async function loadTest() {
   if (testCache) return testCache;
 
-  const res = await fetch('test.json');
-  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  testCache = parseData(DATA);
 
-  
-  try {
-    testCache = await res.json();
-  }
-  catch (err) {
-    console.error('Неверная структура теста:\n', err);
-
-    document.getElementById('test-app').innerHTML = `
-    <div class="alert alert-danger">
-    Ошибка загрузки теста. Пожалуйста, обновите страницу или свяжитесь с поддержкой.
-    </div>
-    `;
-    throw err;
-  }
-
-  try {
-    // Basic validation
-    if (!testCache.start) throw new Error('Некорректная структура теста: отсутствует поле "start"');
-    if (!testCache.questions) throw new Error('Некорректная структура теста: отсутствует объект "questions"');
-    if (!testCache.results) throw new Error('Некорректная структура теста: отсутствует объект "results"');
-
-    // Validate all question references with detailed path
-    const validateQuestionRef = (qid, path = '') => {
-      if (qid.startsWith('result')) {
-        if (!testCache.results[qid]) {
-          throw new Error(`Некорректная ссылка в\n${path} <-- результат "${qid}" не найден`);
-        }
-      } else if (!testCache.questions[qid]) {
-        throw new Error(`Некорректная ссылка в:\n${path} <-- вопрос "${qid}" не найден`);
-      }
-    };
-
-    // Check all questions and answers with detailed error messages
-    for (const [qid, question] of Object.entries(testCache.questions)) {
-      if (typeof question.text !== 'string') {
-        throw new Error(`Некорректный вопрос ${qid}: поле "text" должно быть строкой`);
-      }
-      if (!question.answers || typeof question.answers !== 'object') {
-        throw new Error(`Некорректный вопрос ${qid}: поле "answers" должно быть объектом`);
-      }
-
-      for (const [answer, nextId] of Object.entries(question.answers)) {
-        if (typeof nextId !== 'string') {
-          throw new Error(`Некорректный ответ в вопросе ${qid}: ответ "${answer}" должен ссылаться на строковый ID`);
-        }
-        validateQuestionRef(nextId, `"questions": { \n\t "${qid}": { \n\t\t "answers": { \n\t\t\t"${answer}": "${nextId}"`);
-
-      }
-    }
-
-    // Check custom starts
-    for (const [key, nextId] of Object.entries(testCache.custom_starts || {})) {
-      validateQuestionRef(nextId, `"custom_starts": { \n\t...,\n\t "${key}": "${nextId}"`);
-    }
-
-  } catch (err) {
-    console.error('Ошибка в тесте:', err.message);
-
-  }
-  finally {
-    return testCache;
-  }
+  return testCache;
 }
 
 function createButton(text, onClick, extraClass = '', id = '') {
@@ -89,10 +28,10 @@ function showStartScreen(test, container, startTest) {
   setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(true);
-  container.innerHTML = '<h2 class="mb-4 text-center">Что делать если</h2>';
+  container.innerHTML = `<h2 class="mb-4 text-center">${test.start.text}</h2>`;
   const btnsDiv = document.createElement('div');
   btnsDiv.className = 'start-btns';
-  Object.entries(test.custom_starts).forEach(([label, qid]) => {
+  Object.entries(test.start.answers).forEach(([label, qid]) => {
     const btn = createButton(label, () => {
       testStarted = true;
       historyStack.push(currentScreen);
@@ -103,25 +42,23 @@ function showStartScreen(test, container, startTest) {
     });
     btnsDiv.appendChild(btn);
   });
-  const defBtn = createButton('Необходимо провести диагностику состояния сферы водоснабжения', () => {
-    testStarted = true;
-    historyStack.push(currentScreen);
-    setBackBtnInactive(false);
-    setResetBtnInactive(false);
-    showTestDesc(false);
-    startTest(test.start);
-  });
-  btnsDiv.appendChild(defBtn);
   container.appendChild(btnsDiv);
 }
 
 function showQuestion(qid, test, container, showResult) {
+  // Проверяем является ли нода результатом (нет вопросов)
+  const node = test[qid];
+  if (node && typeof node === 'string') {
+    showResult(qid);
+    return;
+  }
+
   currentScreen = { type: 'question', qid };
   setBackBtnInactive(false);
   setResetBtnInactive(false);
   showTestDesc(false);
-  const q = test.questions[qid];
-  if (!q) {
+  const q = test[qid];
+  if (!q || !q.text || !q.answers) {
     container.innerHTML = '<div class="alert alert-danger">Вопрос не найден</div>';
     return;
   }
@@ -155,7 +92,10 @@ function showResultScreen(resultId, test, container) {
   setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(false);
-  const text = test.results[resultId] || 'Результат не найден';
+  const result = test[resultId];
+  const text = (result && typeof result === 'string') ? result :
+    (result && !result.text && !result.answers) ? JSON.stringify(result) :
+      'Результат не найден';
   container.innerHTML = '';
   const block = document.createElement('div');
   block.className = 'result-block';
@@ -254,6 +194,12 @@ function applySavedTheme() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  applySavedTheme();
+  document.getElementById('theme-toggle').onclick = () => {
+    toggleTheme();
+  };
+  document.getElementById('about-btn').onclick = showAboutModal;
+
   const container = document.getElementById('test-app');
   const test = await loadTest();
 
@@ -262,9 +208,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   showStartScreen(test, container, start);
-  applySavedTheme();
 
-  document.getElementById('about-btn').onclick = showAboutModal;
   document.getElementById('restart-btn').onclick = () => {
     if (currentScreen && (currentScreen.type === 'start' || currentScreen.type === 'result')) return;
     showStartScreen(test, container, start);
@@ -285,9 +229,6 @@ window.addEventListener('DOMContentLoaded', async () => {
       showStartScreen(test, container, start);
     }
   };
-  document.getElementById('theme-toggle').onclick = () => {
-    toggleTheme();
-  };
 
   window.addEventListener('beforeunload', (e) => {
     if (testStarted) {
@@ -304,3 +245,50 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 
 });
+
+function parseData(text) {
+  const nodes = {};
+  const lines = text.split('\n');
+  // если в конце пустота удалить ее (их может быть много)
+  while (lines[lines.length - 1] === '' || lines[lines.length - 1].trim() === '') lines.pop();
+  let currentNode = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    if (line.startsWith('[')) {
+      const endBracket = line.indexOf(']');
+      const id = line.slice(1, endBracket);
+
+      // Extract title (can be on same line or next)
+      let title = line.slice(endBracket + 1).trim();
+      if (!title && i + 1 < lines.length) {
+        i++;
+        title = lines[i].trim();
+      }
+
+      // Check if next line starts with [ or EOF (result node)
+      const isResult = (i + 1 >= lines.length) ||
+        (lines[i + 1].trim().startsWith('['));
+
+      if (isResult) {
+        nodes[id] = title;
+      } else {
+        currentNode = {
+          text: title,
+          answers: {}
+        };
+        nodes[id] = currentNode;
+      }
+    }
+    else if (currentNode) {
+      const parts = line.split(/\s+/);
+      const target = parts.pop();
+      const answer = parts.join(' ');
+      currentNode.answers[answer] = target;
+    }
+  }
+
+  return nodes;
+}
