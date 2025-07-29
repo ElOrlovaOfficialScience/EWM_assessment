@@ -5,9 +5,72 @@ let testStarted = false;
 
 async function loadTest() {
   if (testCache) return testCache;
+
   const res = await fetch('test.json');
-  testCache = await res.json();
-  return testCache;
+  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+  
+  try {
+    testCache = await res.json();
+  }
+  catch (err) {
+    console.error('Неверная структура теста:\n', err);
+
+    document.getElementById('test-app').innerHTML = `
+    <div class="alert alert-danger">
+    Ошибка загрузки теста. Пожалуйста, обновите страницу или свяжитесь с поддержкой.
+    </div>
+    `;
+    throw err;
+  }
+
+  try {
+    // Basic validation
+    if (!testCache.start) throw new Error('Некорректная структура теста: отсутствует поле "start"');
+    if (!testCache.questions) throw new Error('Некорректная структура теста: отсутствует объект "questions"');
+    if (!testCache.results) throw new Error('Некорректная структура теста: отсутствует объект "results"');
+
+    // Validate all question references with detailed path
+    const validateQuestionRef = (qid, path = '') => {
+      if (qid.startsWith('result')) {
+        if (!testCache.results[qid]) {
+          throw new Error(`Некорректная ссылка в\n${path} <-- результат "${qid}" не найден`);
+        }
+      } else if (!testCache.questions[qid]) {
+        throw new Error(`Некорректная ссылка в:\n${path} <-- вопрос "${qid}" не найден`);
+      }
+    };
+
+    // Check all questions and answers with detailed error messages
+    for (const [qid, question] of Object.entries(testCache.questions)) {
+      if (typeof question.text !== 'string') {
+        throw new Error(`Некорректный вопрос ${qid}: поле "text" должно быть строкой`);
+      }
+      if (!question.answers || typeof question.answers !== 'object') {
+        throw new Error(`Некорректный вопрос ${qid}: поле "answers" должно быть объектом`);
+      }
+
+      for (const [answer, nextId] of Object.entries(question.answers)) {
+        if (typeof nextId !== 'string') {
+          throw new Error(`Некорректный ответ в вопросе ${qid}: ответ "${answer}" должен ссылаться на строковый ID`);
+        }
+        validateQuestionRef(nextId, `"questions": { \n\t "${qid}": { \n\t\t "answers": { \n\t\t\t"${answer}": "${nextId}"`);
+
+      }
+    }
+
+    // Check custom starts
+    for (const [key, nextId] of Object.entries(testCache.custom_starts || {})) {
+      validateQuestionRef(nextId, `"custom_starts": { \n\t...,\n\t "${key}": "${nextId}"`);
+    }
+
+  } catch (err) {
+    console.error('Ошибка в тесте:', err.message);
+
+  }
+  finally {
+    return testCache;
+  }
 }
 
 function createButton(text, onClick, extraClass = '', id = '') {
