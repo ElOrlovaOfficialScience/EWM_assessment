@@ -8,6 +8,7 @@ async function loadTest() {
   if (testCache) return testCache;
 
   testCache = parseData(DATA);
+  console.log(testCache);
 
   return testCache;
 }
@@ -249,8 +250,16 @@ window.addEventListener('DOMContentLoaded', async () => {
 function parseData(text) {
   const nodes = {};
   const lines = text.split('\n');
-  // если в конце пустота удалить ее (их может быть много)
-  while (lines[lines.length - 1] === '' || lines[lines.length - 1].trim() === '') lines.pop();
+
+  // удалить все пустоты ''/' '/'  ' и тд
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      lines.splice(i, 1);
+      i--;
+    }
+  }
+
   let currentNode = null;
 
   for (let i = 0; i < lines.length; i++) {
