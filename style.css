@@ -54,7 +54,7 @@ body.dark .app-header {
   background: var(--container-bg);
   border-radius: 18px;
   box-shadow: 0 4px 32px 0 rgba(0,0,0,0.07);
-  padding: 2.5rem 2rem 2rem 2rem;
+  padding: 2rem 2rem 2rem 2rem;
   min-height: 350px;
   display: flex;
   flex-direction: column;
@@ -78,7 +78,7 @@ body.dark .app-header {
   width: 100%;
   max-width: 100%;
   font-size: 1.08rem;
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 0.65rem 0;
   margin: 0;
   background: var(--btn-bg);
@@ -117,7 +117,7 @@ body.dark .app-header {
   min-width: 0;
   max-width: 100%;
   font-size: 1.08rem;
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 0.65rem 0;
   margin: 0;
   background: var(--btn-bg);
@@ -133,7 +133,7 @@ body.dark .app-header {
 
 @media (max-width: 600px) {
   #test-app {
-    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    padding: 0.6rem;
     min-height: 250px;
   }
   .answers-row {
@@ -147,7 +147,7 @@ body.dark .app-header {
 .result-block {
   text-align: center;
   padding: 2rem 1rem 1.5rem 1rem;
-  border-radius: 18px;
+  border-radius: 9px;
   background: var(--result-grad);
   box-shadow: 0 6px 32px 0 rgba(0,0,0,0.10);
   margin-bottom: 1.5rem;
@@ -186,7 +186,7 @@ body.dark .app-header {
 .result-block .btn {
   margin-top: 1.2rem;
   font-size: 1.1rem;
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 0.7rem 0;
   min-width: 160px;
   background: var(--primary);
@@ -274,7 +274,7 @@ body.dark .btn:active {
   width: 100%;
   max-width: 100%;
   font-size: 1.08rem;
-  border-radius: 10px;
+  border-radius: 9px;
   padding: 0.65rem 0;
   margin: 0;
   background: var(--btn-bg);
