@@ -94,15 +94,19 @@ function showResultScreen(resultId, test, container) {
   setResetBtnInactive(true);
   showTestDesc(false);
   const result = test[resultId];
-  const text = (result && typeof result === 'string') ? result :
+  let text = (result && typeof result === 'string') ? result :
     (result && !result.text && !result.answers) ? JSON.stringify(result) :
       'Результат не найден';
+  
+  // Format text with newlines
+  text = text.replace(/\n/g, '<br>');
+  
   container.innerHTML = '';
   const block = document.createElement('div');
   block.className = 'result-block';
   block.innerHTML = `
     <h4>Рекомендация</h4>
-    <p>${text}</p>
+    <div class="result-text">${text}</div>
   `;
   container.appendChild(block);
   const btnsDiv = document.createElement('div');
@@ -194,7 +198,8 @@ function applySavedTheme() {
   setThemeIcon();
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
+// window.addEventListener('DOMContentLoaded', async () => {
+const onStart = (async () => {
   applySavedTheme();
   document.getElementById('theme-toggle').onclick = () => {
     toggleTheme();
@@ -270,8 +275,35 @@ function parseData(text) {
       const endBracket = line.indexOf(']');
       const id = line.slice(1, endBracket);
 
+      // Check for backtick after id
+      const restOfLine = line.slice(endBracket + 1).trim();
+      if (restOfLine.startsWith('`')) {
+        // Handle backtick-enclosed multi-line text
+        let content = restOfLine.slice(1);
+        if (content.includes('`')) {
+          // Closing backtick on same line
+          const endBacktick = content.indexOf('`');
+          content = content.slice(0, endBacktick);
+          nodes[id] = content;
+        } else {
+          // Multi-line backtick content
+          content += '\n';
+          i++;
+          while (i < lines.length && !lines[i].includes('`')) {
+            content += lines[i] + '\n';
+            i++;
+          }
+          if (i < lines.length) {
+            const closingLine = lines[i].split('`')[0];
+            content += closingLine;
+          }
+          nodes[id] = content;
+        }
+        continue;
+      }
+
       // Extract title (can be on same line or next)
-      let title = line.slice(endBracket + 1).trim();
+      let title = restOfLine;
       if (!title && i + 1 < lines.length) {
         i++;
         title = lines[i].trim();
