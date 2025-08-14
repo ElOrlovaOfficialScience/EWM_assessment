@@ -198,8 +198,8 @@ function applySavedTheme() {
   setThemeIcon();
 }
 
-// window.addEventListener('DOMContentLoaded', async () => {
-const onStart = (async () => {
+window.addEventListener('DOMContentLoaded', async () => {
+// const onStart = (async () => {
   applySavedTheme();
   document.getElementById('theme-toggle').onclick = () => {
     toggleTheme();
