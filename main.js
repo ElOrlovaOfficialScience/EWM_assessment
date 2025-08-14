@@ -97,17 +97,36 @@ function showResultScreen(resultId, test, container) {
   let text = (result && typeof result === 'string') ? result :
     (result && !result.text && !result.answers) ? JSON.stringify(result) :
       'Результат не найден';
-  
-  // Format text with newlines
-  text = text.replace(/\n/g, '<br>');
-  
+
   container.innerHTML = '';
   const block = document.createElement('div');
   block.className = 'result-block';
-  block.innerHTML = `
-    <h4>Рекомендация</h4>
-    <div class="result-text">${text}</div>
-  `;
+  
+  // Split into lines and structure the content
+  const lines = text.split('\n');
+  let htmlContent = '<h4 class="result-header">Результат</h4>';
+  
+  if (lines.length > 0) {
+    htmlContent += `<div class="result-content">`;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim()) {
+        // Format all lines as key-value pairs if they contain '='
+        if (lines[i].includes('=')) {
+          const [key, value] = lines[i].split('=').map(s => s.trim());
+          htmlContent += `<div class="result-line">
+            <span class="result-key">${key}</span>
+            <span class="result-value">${value}</span>
+          </div>`;
+        } else {
+          // For non key-value lines, show as regular text
+          htmlContent += `<div class="result-line">${lines[i]}</div>`;
+        }
+      }
+    }
+    htmlContent += `</div>`;
+  }
+
+  block.innerHTML = htmlContent;
   container.appendChild(block);
   const btnsDiv = document.createElement('div');
   btnsDiv.className = 'answers-row flex-column';

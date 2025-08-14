@@ -145,29 +145,44 @@ body.dark .app-header {
 }
 
 .result-block {
-  text-align: center;
-  padding: 2rem 1rem 1.5rem 1rem;
-  border-radius: 9px;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
   background: var(--result-grad);
   box-shadow: 0 6px 32px 0 rgba(0,0,0,0.10);
-  margin-bottom: 1.5rem;
   animation: popin 0.7s cubic-bezier(.68,-0.55,.27,1.55);
   transition: background 0.3s;
+  text-align: left;
 }
 
-.result-block h4 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary);
+.result-header {
   margin-bottom: 1rem;
-  animation: fadein 0.7s;
+  font-size: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  color: var(--heading-color);
+  text-align: center;
 }
 
-.result-block p {
-  font-size: 1.15rem;
+.result-content {
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: var(--text);
-  margin-bottom: 0.5rem;
-  animation: fadein 0.7s;
+}
+
+.result-line {
+  /* margin-bottom: 0.5rem; */
+  padding: 0.25rem 0;
+}
+
+.result-key {
+  font-weight: 600;
+  color: var(--primary);
+  margin-right: 0.5rem;
+}
+
+.result-value {
+  color: var(--text);
 }
 
 @keyframes popin {
@@ -294,4 +309,4 @@ body.dark .btn:active {
 #restart-btn.inactive {
   opacity: 0.5;
   pointer-events: none;
-} 
+}
