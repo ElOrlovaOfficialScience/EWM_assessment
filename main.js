@@ -90,7 +90,7 @@ function showQuestion(qid, test, container, showResult) {
 function showResultScreen(resultId, test, container) {
   currentScreen = { type: 'result', resultId };
   testStarted = false;
-  setBackBtnInactive(true);
+  // setBackBtnInactive(true);
   setResetBtnInactive(true);
   showTestDesc(false);
   const result = test[resultId];
@@ -239,7 +239,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     showStartScreen(test, container, start);
   };
   document.getElementById('back-btn').onclick = () => {
-    if (currentScreen && (currentScreen.type === 'start' || currentScreen.type === 'result')) return;
+    if (currentScreen && (currentScreen.type === 'start')) return;
     if (historyStack.length > 0) {
       const prev = historyStack.pop();
       if (!prev) return;
